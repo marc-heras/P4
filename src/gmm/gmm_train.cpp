@@ -57,11 +57,7 @@ int main(int argc, const char *argv[])
 	/// initicialization accordingly.
 	switch (init_method) {
 		case 0:
-<<<<<<< HEAD
-			gmm.random_init(data,nmix);
-=======
 			gmm.random_init(data, nmix);
->>>>>>> 56e1cc5f8fb2cfa12ef51798c3892be2d8058935
 			break;
 		case 1:
 			break;
