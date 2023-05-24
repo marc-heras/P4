@@ -160,7 +160,7 @@ for cmd in $*; do
        # - The name of the world model will be used by gmm_verify in the 'verify' command below.
        echo "Implement the trainworld option ..."
 
-   elif [[ $cmd == verify ]]; -then
+   elif [[ $cmd == verify ]]; then
        ## @file
        # \TODO 
        # Implement 'verify' in order to perform speaker verification
