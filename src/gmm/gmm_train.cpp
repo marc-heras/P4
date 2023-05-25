@@ -60,10 +60,10 @@ int main(int argc, const char *argv[])
 			gmm.random_init(data, nmix);
 			break;
 		case 1:
-			gmm.vq(data, nmix);
+			//gmm.vq(data, nmix);
 			break;
 		case 2:
-			gmm.em_split(data, final_nmix, max_it, inc_threshold, verbose);
+			gmm.em_split(data, nmix, init_iterations, init_threshold, verbose);
 			break;
 		default:
 			;
