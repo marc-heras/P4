@@ -10,8 +10,8 @@ using namespace upc;
 
 const string DEF_INPUT_EXT = "mcp";
 const unsigned int DEF_ITERATIONS = 20;
-const float DEF_THR = 1e-3;
-const unsigned int DEF_NMIXTURES = 5;
+const float DEF_THR = 0;
+const unsigned int DEF_NMIXTURES = 27;
 const string DEF_GMMFILE = "output.gmm";
 
 int read_data(const string & input_directory, const string & input_extension,
@@ -34,7 +34,7 @@ int main(int argc, const char *argv[])
 	Filename gmm_filename(DEF_GMMFILE);
 	unsigned int init_iterations=DEF_ITERATIONS, em_iterations=DEF_ITERATIONS;
 	float init_threshold=DEF_THR, em_threshold=DEF_THR;
-	int init_method=0;
+	int init_method=1;
 
 	///Read command line options
 	int retv = read_options(argc, argv, input_dir, input_ext, filenames,
@@ -60,7 +60,7 @@ int main(int argc, const char *argv[])
 			gmm.random_init(data, nmix);
 			break;
 		case 1:
-			//gmm.vq(data, nmix);
+			gmm.vq_lbg(data, nmix, init_iterations, init_threshold, verbose);
 			break;
 		case 2:
 			gmm.em_split(data, nmix, init_iterations, init_threshold, verbose);

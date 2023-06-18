@@ -33,37 +33,83 @@ ejercicios indicados.
   principal (`sox`, `$X2X`, `$FRAME`, `$WINDOW` y `$LPC`). Explique el significado de cada una de las 
   opciones empleadas y de sus valores.
 
+  Utilizamos el programa sox para leer los ficheros de entrada y extraer los datos en el formato que nos interesa, en este caso en crudo, formato de audio sin procesar.
+
+  Con el comando X2X convertimos los datos de audio en formato binario sin procesar a un formato de punto flotante.
+
+  Con el comando frame dividimos la trama en segmentos de 240 de longitud y desplazamiento de 80 muestras.
+
+  Con el comando WINDOW aplicamos una ventana de análisis  a cada trama de audio. En este caso, la ventana tiene la misma longitud que la trama.
+
+  Por último, con el comando LPC realizamos el análisis de predicción lineal en cada trama de audio. LPC order, indica el orden del modelo LPC.
+
 - Explique el procedimiento seguido para obtener un fichero de formato *fmatrix* a partir de los ficheros de
   salida de SPTK (líneas 45 a 51 del script `wav2lp.sh`).
 
+  Se calculan el número de filas y columnas del archivo y su contenido se guarda en una matriz.
+
   * ¿Por qué es más conveniente el formato *fmatrix* que el SPTK?
+
+  El formato *fmatrix* no es un formato tan rígido de texto y puede permitir un orden más sencillo en cuanto a su lectura o compatibilidad. También permite ordenar datos de una forma lógica y eficiente.
 
 - Escriba el *pipeline* principal usado para calcular los coeficientes cepstrales de predicción lineal
   (LPCC) en su fichero <code>scripts/wav2lpcc.sh</code>:
 
+  sox $inputfile -t raw -e signed -b 16 - | $X2X +sf | $FRAME -l 240 -p 80 | $WINDOW -l 240 -L 240 |
+	$LPC -l 240 -m $lpc_order | $LPC2C -m $lpc_order -M $cepstrum_order > $base.lpcc || exit 1
+
 - Escriba el *pipeline* principal usado para calcular los coeficientes cepstrales en escala Mel (MFCC) en su
   fichero <code>scripts/wav2mfcc.sh</code>:
+
+  sox $inputfile -t raw -e signed -b 16 - | $X2X +sf | $FRAME -l 240 -p 80 | $WINDOW -l 240 -L 240 |
+	$MFCC -l 180 -m $mfcc_order -n $channel_order -w $window_type -a $prem_coef -s $sampling_rate -c $lift_coef > $base.mfcc || exit 1
 
 ### Extracción de características.
 
 - Inserte una imagen mostrando la dependencia entre los coeficientes 2 y 3 de las tres parametrizaciones
   para todas las señales de un locutor.
-  
+  ![imagen](Img/coefmfcc.jpg)
+  ![imagen](Img/coeflpcc.jpg)
+  ![imagen](Img/coeflp.jpg)
   + Indique **todas** las órdenes necesarias para obtener las gráficas a partir de las señales 
     parametrizadas.
+
+  run_spkid lpc
+  run_spkid lpcc
+  run_spkid mfcc
+
+  fmatrix_show work/lp/BLOCK10/SES100/*.lp | egrep '^\[' | cut -f4,5 > lp.txt
+  fmatrix_show work/lpcc/BLOCK10/SES100/*.lpcc | egrep '^\[' | cut -f4,5 > lpcc.txt
+  fmatrix_show work/mfcc/BLOCK10/SES100/*.mfcc | egrep '^\[' | cut -f4,5 > mfcc.txt
+
+  Ploteamos con Matlab:
+
+  coef = importdata('mfcc.txt');
+  plot(coef(:,1),coef(:,2), '.');
+
+
   + ¿Cuál de ellas le parece que contiene más información?
+
+  La que tiene los puntos más dispersos parece ser mfcc, lo que nos indica incorrelación mayor.
 
 - Usando el programa <code>pearson</code>, obtenga los coeficientes de correlación normalizada entre los
   parámetros 2 y 3 para un locutor, y rellene la tabla siguiente con los valores obtenidos.
 
   |                        | LP   | LPCC | MFCC |
   |------------------------|:----:|:----:|:----:|
-  | &rho;<sub>x</sub>[2,3] |      |      |      |
+  | &rho;<sub>x</sub>[2,3] |  -0.829169   |  0.101213     | 0.0403672       
+  
+
   
   + Compare los resultados de <code>pearson</code> con los obtenidos gráficamente.
+
+  Observamos que los resultados obtenidos concuerdan con las gáficas anteriores. Determianndo el mfcc como el más informativo.
   
 - Según la teoría, ¿qué parámetros considera adecuados para el cálculo de los coeficientes LPCC y MFCC?
 
+Para el LPCC se consideran entre 10 y 20 coeficientes, el uso de una ventana, típicamente Hamming, con duración de entre 20 y 30ms y desplazamiento de 10 a 15 ms.
+
+Para el MFCC se consideran entre 24 y 40 filtros Mel, y el enventanado de entre 20 y 40 ms.
 ### Entrenamiento y visualización de los GMM.
 
 Complete el código necesario para entrenar modelos GMM.
@@ -82,6 +128,18 @@ Complete el código necesario para realizar reconociminto del locutor y optimice
 - Inserte una tabla con la tasa de error obtenida en el reconocimiento de los locutores de la base de datos
   SPEECON usando su mejor sistema de reconocimiento para los parámetros LP, LPCC y MFCC.
 
+
+  |    Parametros          | LP    | LPCC  |  MFCC |
+  |------------------------|:-----:|:-----:|:-----:|
+  | FEAT order             |   10   |   30  |   20   |
+  | Cepstrum order         |   -   |   29  |   -   |
+  | Filter bank            |   -   |   -   |   35   |
+  | Frequency              |   -   |   -   |   8   |
+  | Nº of Mixtures         |   27   |   27  |   33   |
+  | Max Iterations         |   20   |   20  |   20   |
+  | Inicialization         |   VQ   |   VQ  |   EM   |
+  | Tasa de error          |  9.43% | 0.38% |  1.02% |
+
 ### Verificación del locutor.
 
 Complete el código necesario para realizar verificación del locutor y optimice sus parámetros.
@@ -90,6 +148,17 @@ Complete el código necesario para realizar verificación del locutor y optimice
   de verificación de SPEECON. La tabla debe incluir el umbral óptimo, el número de falsas alarmas y de
   pérdidas, y el score obtenido usando la parametrización que mejor resultado le hubiera dado en la tarea
   de reconocimiento.
+
+  |    Parametros          | LP    | LPCC  |  MFCC |
+  |------------------------|:-----:|:-----:|:-----:|
+  |Tasa de error (Classify)|  8.15% | 0.38% |  1.02% |
+  | Nº of Mixtures (World) |   27   |   27  |   27   |
+  | Max Iterations (World) |   20  |   20  |   20   |
+  | Inicialization (World) |   VQ  |   VQ  |   VQ   |
+  | Misses                 |   64  |   14   |   18   |
+  | False Alarms           |   22  |   2   |   5   |
+  | Optimum Threshold      |0.557773760166403|0.596233041837599|0.578234374617886|
+  | CostDetection          |   45.4   |   7.4   |   11.7   |
  
 ### Test final
 

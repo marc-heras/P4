@@ -82,7 +82,7 @@ compute_lp() {
     shift
     for filename in $(sort $*); do
         mkdir -p `dirname $w/$FEAT/$filename.$FEAT`
-        EXEC="wav2lp 8 $db/$filename.wav $w/$FEAT/$filename.$FEAT"
+        EXEC="wav2lp 10 $db/$filename.wav $w/$FEAT/$filename.$FEAT"
         echo $EXEC && $EXEC || exit 1
     done
 }
@@ -92,7 +92,7 @@ compute_lpcc() {
     shift
     for filename in $(sort $*); do
         mkdir -p `dirname $w/$FEAT/$filename.$FEAT`
-        EXEC="wav2lpcc 16 12 $db/$filename.wav $w/$FEAT/$filename.$FEAT"
+        EXEC="wav2lpcc 30 29 $db/$filename.wav $w/$FEAT/$filename.$FEAT"
         echo $EXEC && $EXEC || exit 1
     done
 }
@@ -102,7 +102,7 @@ compute_mfcc() {
     shift
     for filename in $(sort $*); do
         mkdir -p `dirname $w/$FEAT/$filename.$FEAT`
-        EXEC="wav2mfcc 12 20 0 $db/$filename.wav $w/$FEAT/$filename.$FEAT"
+        EXEC="wav2mfcc 20 35 0 1 8 25 $db/$filename.wav $w/$FEAT/$filename.$FEAT"
         echo $EXEC && $EXEC || exit 1
     done
 }
@@ -133,7 +133,7 @@ for cmd in $*; do
        for dir in $db_devel/BLOCK*/SES* ; do
            name=${dir/*\/}
            echo $name ----
-           EXEC="gmm_train -v 1 -T 0.001 -N 20 -m 20 -i 2 -d $w/$FEAT -e $FEAT -g $w/gmm/$FEAT/$name.gmm $lists/class/$name.train"
+           EXEC="gmm_train -v 1 -T 0 -N 20 -m 27 -i 2 -d $w/$FEAT -e $FEAT -g $w/gmm/$FEAT/$name.gmm $lists/class/$name.train"
            echo $EXEC && $EXEC || exit 1
            echo
        done
@@ -159,7 +159,7 @@ for cmd in $*; do
        # Implement 'trainworld' in order to get a Universal Background Model for speaker verification
        #
        # - The name of the world model will be used by gmm_verify in the 'verify' command below.
-       EXEC="gmm_train -i0 -v 1 -T 0.001 -N 5 -m 1 -d $w/$FEAT -e $FEAT -g $w/gmm/$FEAT/$world.gmm $lists/verif/$world.train"
+       EXEC="gmm_train -i0 -v 1 -T 0 -N 20 -m 27 -d $w/$FEAT -e $FEAT -g $w/gmm/$FEAT/$world.gmm $lists/verif/$world.train"
         echo $EXEC && $EXEC || exit 1
 
    elif [[ $cmd == verify ]]; then
